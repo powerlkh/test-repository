@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <!DOCTYPE  tiles-definitions PUBLIC
+	"-//Aapche Software Foundation//DTD Tiles Configuration 2.0//EN"
+	"http://tiles.apache.org/dtds/tiles-config_2_1.dtd">
+ -->
+
+<!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Soft Foundation//DTD Tiles Configuration 3.0//EN"
+"http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+	<definition name="main" template="/tiles/layout.jsp">
+		<put-attribute name="title" value="Spring Project"/>
+		<put-attribute name="top" value = "/tiles/top.jsp"/>
+		<put-attribute name="body" value = "/tiles/body.jsp"/>
+	</definition>
+
+
+	<definition name="side" template="/tiles/layout_side.jsp">
+		<put-attribute name="title" value="Spring Project"/>
+		<put-attribute name="top" value = "/tiles/top.jsp"/>
+		<put-attribute name="body_left" value = "/tiles/body_left.jsp"/>
+		<put-attribute name="body_right" value = "/tiles/body_right.jsp"/>
+		<put-attribute name="body" value = "/tiles/body.jsp"/>
+	</definition>
+
+
+	<definition name="side2_*_*" extends="side">
+		<put-attribute name="body_right" value = "/{1}/{2}.jsp"/>
+	</definition>
+
+	<definition name="side_*_*" extends="side">
+		<put-attribute name="body_left" value = "/member/loginPage"/>
+		<put-attribute name="body_right" value = "/{1}/{2}.jsp"/>
+	</definition>
+
+
+	<definition name="tiles_*_*" extends="main">
+		<put-attribute name="body" value = "/{1}/{2}.jsp"/>
+	</definition>
+
+	<definition name="popup" template="/tiles/layout_popup.jsp">
+		<put-attribute name="title" value="Popup Test"/>
+		<put-attribute name="body" value = "/tiles/body.jsp"/>
+	</definition>
+	<definition name="tiles_popup_*_*" extends="popup">
+		<put-attribute name="body" value = "/{1}/{2}.jsp"/>
+	</definition>
+
+</tiles-definitions>
