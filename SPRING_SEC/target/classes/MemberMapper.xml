@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kosmo.mapper.MemberMapper">
+
+	<!-- <resultMap id="memberMap" type="com.kosmo.member.MemberVO">
+		<id property="mseq" column="mseq" />
+		<result property="mid" column="mid"/>
+		<result property="mpw" column="mpw"/>
+		<result property="mname" column="mname"/>
+		<result property="mgubun" column="mgubun"/>
+		<result property="regdate" column="regdate"/>
+	</resultMap> -->
+
+
+	<select id="memberSearchByID" parameterType="java.lang.String" resultType="com.kosmo.member.MemberVO">
+		select mseq,mid,mpw,mname,mgubun,to_date(regdate,'yyyy-mm-dd') regdate from member
+		where mid = #{mid}
+	</select>
+
+
+
+	<select id="memberList" resultType="com.kosmo.member.MemberVO">
+		select mseq,mid,mpw,mname,mgubun,to_date(regdate,'yyyy-mm-dd') regdate from member order by mseq desc
+	</select>
+
+	<insert id="memberInsert" parameterType="com.kosmo.member.MemberVO">
+		insert
+		into member(mseq,mid,mpw,mname,mgubun,regdate)
+		values(member_seq.nextval , #{mid},#{mpw},#{mname},#{mgubun}, sysdate)
+	</insert>
+
+	<delete id="memberDelete" parameterType="com.kosmo.member.MemberVO">
+		delete from member where mseq=#{mseq}
+	</delete>
+
+
+</mapper>
