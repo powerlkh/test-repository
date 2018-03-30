@@ -6,6 +6,7 @@ public class PMJ {
 		// TODO Auto-generated method stub
 //fdfff
 		//명성 추가..
+		//민지 추가..
 	}
 
 }
