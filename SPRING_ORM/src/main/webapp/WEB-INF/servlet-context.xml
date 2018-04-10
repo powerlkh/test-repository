@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+	<context:property-placeholder location="classpath:*.properties" />
+
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<mvc:annotation-driven />
+	<context:component-scan base-package="com.kosmo.**" />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+	<mvc:resources mapping="/calendar/**" location="/calendar/" />
+
+
+
+	<!-- datasource - dataSourceSpied -->
+	<bean id="kosmoDS" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	    <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+	    <property name="url" 		value="jdbc:oracle:thin:@192.168.0.13:1521:XE" />
+	    <property name="username" 	value="custom" />
+	    <property name="password" 	value="1111" />
+	</bean>
+
+
+	<!-- DBCP -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="kosmoDS"/>
+		<property name="configLocation" value="classpath:mybatis-context.xml"/>
+		<property name="mapperLocations" value="classpath:*Mapper.xml"/>
+		<!-- <property name="transactionFactory">
+			<bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory" />
+		</property> -->
+	</bean>
+
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+
+
+	<!-- MapperInterface.java 사용 시 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.kosmo.board.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<!-- <bean id="mapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+	     <property name="mapperInterface" value="com.kosmo.board.BoardMapper" />
+	     <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	     <property name="sqlSessionTemplate" ref="sqlSession" />
+	</bean>
+ -->
+
+	<!--  transaction Manager-->
+	<bean id="txManager"
+	class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="kosmoDS" />
+	</bean>
+	<!-- <tx:annotation-driven transaction-manager="txManager"/> -->
+
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut id="cut" expression="execution(* com.kosmo.board.*Impl.*(..))"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="cut" />
+	</aop:config>
+
+	<bean id="multipartResolver"  class="org.springframework.web.multipart.commons.CommonsMultipartResolver" >
+      <property name="maxUploadSize" value="1000000000"/>
+      <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+
+
+	<!-- Tiles 3.x Setting
+	 <bean id="tilesViewResolver" class="org.springframework.web.servlet.view.tiles2.TilesViewResolver" />
+	 <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+	 <property name="definitions" value="/WEB-INF/tiles.xml" />
+	 </bean>
+	 <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+        <property name="definitions">
+            <list>
+                 <value>/WEB-INF/tiles/tiles.xml</value>
+            </list>
+        </property>
+
+    </bean>
+	-->
+
+	<!-- tiles view resolver
+	<bean id = "tilesViewResolver" class="org.springframework.web.servlet.view.tiles2.TilesViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView" />
+		<property name="order" value="1" />
+  	</bean>
+	-->
+
+	<!-- Tiles -->
+	<!-- <bean id = "tilesConfigurer" class = "org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+		<property name="definitions">
+			<list>
+				<value>/WEB-INF/tiles.xml</value>
+			</list>
+		</property>
+	</bean> -->
+	<!-- tiles view resolver -->
+	<!-- <bean id = "tilesViewResolver" class="org.springframework.web.servlet.view.tiles2.TilesViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView" />
+		<property name="order" value="1" />
+  	</bean> -->
+
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+</beans>

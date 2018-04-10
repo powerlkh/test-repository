@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kosmo.board.mapper.BoardMapper">
+
+	<!--
+	rnum, bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,regdate
+	-->
+	<resultMap id="boardMap" type="com.kosmo.board.BoardVO">
+		<id property="bseq" column="bseq" />
+		<result property="btype" column="btype"/>
+		<result property="btitle" column="btitle"/>
+		<result property="bcon" column="bcon"/>
+		<result property="mseq" column="mseq"/>
+		<result property="bcon" column="bcon"/>
+		<result property="bfile_path" column="bfile_path"/>
+		<result property="bfile_name" column="bfile_name"/>
+		<result property="bfile_size" column="bfile_size"/>
+		<result property="regdate" column="regdate"/>
+	</resultMap>
+
+
+
+	<resultMap id="replyMap" type="com.kosmo.board.BoardReplyVO">
+		<id property="rseq" column="rseq"/>
+		<id property="bseq" column="bseq"/>
+		<id property="reply" column="reply"/>
+		<id property="mseq" column="mseq"/>
+		<id property="regdate" column="regdate"/>
+	</resultMap>
+
+	<resultMap id="brListMap" type="com.kosmo.board.BoardVO">
+		<id property="bseq" column="bseq"/>
+		<result property="btitle" column="btitle"/>
+		<collection property="rlist" columnPrefix="r_" javaType="ArrayList" resultMap="replyMap" />
+	</resultMap>
+
+	<resultMap id="brDetailMap" type="com.kosmo.board.BoardVO">
+		<id property="bseq" column="bseq"/>
+		<result property="btitle" column="btitle"/>
+		<collection property="rlist" column="bseq" columnPrefix="r_" javaType="ArrayList" resultMap="replyMap" />
+	</resultMap>
+
+
+
+
+	<select id="boardListAndReplyList" resultMap="brListMap">
+		select b.bseq, b.btitle, r.rseq as r_rseq, r.bseq as r_bseq, r.reply r_reply
+		from board b, board_reply r
+		where b.bseq = r.bseq(+)
+	</select>
+
+	<select id="boardDetailAndReplyList" parameterType="int" resultMap="brDetailMap">
+		select b.bseq, b.btitle, r.rseq as r_rseq, r.bseq as r_bseq, r.reply r_reply
+		from board b, board_reply r
+		where b.bseq = r.bseq(+)
+		and b.bseq = #{bseq}
+	</select>
+
+
+
+
+
+
+	<select id="boardCount"
+	resultType="Integer">
+		select count(*) totalCount from board
+	</select>
+
+
+	<select id="boardListForSearch"
+	parameterType="map"
+	resultType="com.kosmo.board.BoardVO">
+	<!-- '%' ||  #{keyword} || '%' -->
+		select rnum, bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,regdate
+		from
+		(
+		    select  rownum rnum, bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size, regdate
+		    from
+		        (select bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,to_char(regdate, 'YYYY-MM-DD') regdate from board
+		  		where  ${searchGubun}  like '%' ||  #{searchStr} || '%'
+		  		order by regdate desc) t
+		)
+		where rnum <![CDATA[>=]]> #{sseq} and rnum <![CDATA[<=]]> #{eseq}
+	</select>
+
+
+		<select id="boardList"
+	parameterType="map"
+	resultMap="boardMap">
+	<!-- resultType="com.kosmo.board.BoardVO"> -->
+		select rnum, bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,regdate
+		from
+		(
+		    select  rownum rnum, bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size, regdate
+		    from
+		        (select bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,to_char(regdate, 'YYYY-MM-DD') regdate from board order by bseq desc) t
+		)
+		where rnum <![CDATA[>=]]> #{sseq} and rnum <![CDATA[<=]]> #{eseq}
+	</select>
+
+
+	<select id="boardDetail"
+	parameterType="int"
+	resultType="com.kosmo.board.BoardVO"
+	>
+		select bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,regdate from board
+		where bseq <![CDATA[=]]> #{bsq}
+		order by bseq
+	</select>
+
+	<insert id="boardInsert"
+	parameterType="com.kosmo.board.BoardVO">
+		insert
+		into board(bseq,btype,btitle,bcon,mseq,bfile_path,bfile_name,bfile_size,regdate)
+		values(board_seq.nextval , #{btype},#{btitle},#{bcon},#{mseq},#{bfile_path},#{bfile_name},#{bfile_size}, sysdate)
+		<!--
+		,#{bfile_path, jdbcType=VARCHAR}
+		,#{bfile_name, jdbcType=VARCHAR}
+		,#{bfile_size, jdbcType=INTEGER}
+		 -->
+	</insert>
+
+	<update id="boardUpdateForUpload">
+		update board
+		set
+			btitle=#{btitle}
+			,bcon=#{bcon}
+			,bfile_path=#{bfile_path}
+			,bfile_name=#{bfile_name}
+			,bfile_size=#{bfile_size}
+		where bseq=#{bseq}
+	</update>
+
+	<update id="boardUpdate">
+		update board
+		set
+			btitle=#{btitle}
+			,bcon=#{bcon}
+		where bseq=#{bseq}
+	</update>
+
+
+	<update id="boardDelete"
+	parameterType="Integer">
+		delete from board
+		where bseq=#{bseq}
+	</update>
+
+</mapper>

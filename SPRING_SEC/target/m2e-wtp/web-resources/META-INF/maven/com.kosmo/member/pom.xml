@@ -13,6 +13,7 @@
 		<org.aspectj-version>1.6.10</org.aspectj-version>
 		<org.slf4j-version>1.6.6</org.slf4j-version>
 		<org.apache.tiles.version>3.0.1</org.apache.tiles.version>
+		<org.springframework.security.oauth.version>2.0.7.RELEASE</org.springframework.security.oauth.version>
 	</properties>
 	<dependencies>
 		<!-- Spring -->
@@ -25,31 +26,48 @@
 				<exclusion>
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
-				 </exclusion>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
 		<!-- Spring Security -->
 		<dependency>
-		    <groupId>org.springframework.security</groupId>
-		    <artifactId>spring-security-core</artifactId>
-		    <version>${org.springframework-version}</version>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${org.springframework-version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.springframework.security</groupId>
-    		<artifactId>spring-security-web</artifactId>
-		    <version>${org.springframework-version}</version>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<version>${org.springframework-version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.springframework.security</groupId>
-    		<artifactId>spring-security-config</artifactId>
-		    <version>${org.springframework-version}</version>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>${org.springframework-version}</version>
 		</dependency>
 		<dependency>
-		   <groupId>org.springframework.security</groupId>
-    		<artifactId>spring-security-taglibs</artifactId>
-		    <version>${org.springframework-version}</version>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-taglibs</artifactId>
+			<version>${org.springframework-version}</version>
 		</dependency>
+
+
+		<!-- Spring Security Oauth2 -->
+		<dependency>
+			<groupId>org.springframework.security.oauth</groupId>
+			<artifactId>spring-security-oauth2</artifactId>
+			<version>${org.springframework.security.oauth.version}</version>
+		</dependency>
+
+		<!-- Spring Social Google -->
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+
+
 
 
 		<dependency>
@@ -68,24 +86,24 @@
 			<version>${org.springframework-version}</version>
 		</dependency>
 
-<!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
-<dependency>
-    <groupId>org.jsoup</groupId>
-    <artifactId>jsoup</artifactId>
-    <version>1.11.2</version>
-</dependency>
-<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-<dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpclient</artifactId>
-    <version>4.3.2</version>
-</dependency>
-<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
-<dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpcore</artifactId>
-    <version>4.4.3</version>
-</dependency>
+		<!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.11.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.4.3</version>
+		</dependency>
 
 
 		<!-- tiles -->
@@ -102,8 +120,7 @@
 
 
 		<!-- AJAX jackson -->
-		<!-- spring3 jackson-mapper-asl jackson-core
-		     spring4 jackson-databind  -->
+		<!-- spring3 jackson-mapper-asl jackson-core spring4 jackson-databind -->
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
@@ -315,42 +332,42 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <additionalProjectnatures>
-                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                    </additionalProjectnatures>
-                    <additionalBuildcommands>
-                        <buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
-                    </additionalBuildcommands>
-                    <downloadSources>true</downloadSources>
-                    <downloadJavadocs>true</downloadJavadocs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <compilerArgument>-Xlint:all</compilerArgument>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <configuration>
-                    <mainClass>org.test.int1.Main</mainClass>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<additionalProjectnatures>
+						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+					<additionalBuildcommands>
+						<buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
+					</additionalBuildcommands>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>org.test.int1.Main</mainClass>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

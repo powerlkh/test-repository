@@ -1,0 +1,22 @@
+<spring>
+ POJO.xml / annotaion
+ - mvc
+ - di
+ - dbcp + datasource
+ - orm + mybatis
+ - aop
+ - transaction
+ - web(+tiles +multipart)
+ - security
+ 
+1. vo lombok annotation
+2. log4J + junit
+ ----- open API -----
+3. AX5UI - GRID 3 
+   http://pentode.tistory.com/115
+4. poi excel 
+5. JFree chart 
+6. tiles view template
+7. open API - kakao talk
+8. firebase - cloud server
+ 

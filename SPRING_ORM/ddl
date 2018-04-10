@@ -1,0 +1,27 @@
+create table board_reply(
+rseq number primary key,
+bseq number, --fk
+reply varchar2(200),
+mseq number,
+regdate date default sysdate
+);
+
+create sequence board_reply_seq
+start with 1
+increment by 1;
+
+insert into board_reply
+values(board_reply_seq.nextval, 138, '138댓글1',1, sysdate);
+
+insert into board_reply
+values(board_reply_seq.nextval, 138, '138댓글2',1, sysdate);
+
+insert into board_reply
+values(board_reply_seq.nextval, 138, '138댓글3',1, sysdate);
+
+insert into board_reply
+values(board_reply_seq.nextval, 139, '139댓글1',1, sysdate);
+
+commit;
+
+select * from board_reply;
