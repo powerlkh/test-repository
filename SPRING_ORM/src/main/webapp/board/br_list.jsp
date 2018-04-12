@@ -18,9 +18,9 @@
 		</tr>
 	</thead>
 	<tbody>
-	<c:forEach items="${LVL_LIST}" var="vo">
+	<c:forEach items="${LVL_LIST}" var="vo" varStatus="st">
 		<tr>
-			<td><a href="/brdetail.do?bseq=${vo.bseq}">${vo.bseq}</a></td>
+			<td>${st.count}<a href="/brdetail.do?bseq=${vo.bseq}">${vo.bseq}</a></td>
 			<td>
 				<c:forEach items="${vo.rlist}" var="r">
 					 ${r.rseq} /

@@ -109,7 +109,19 @@ public class BoardServiceImpl implements BoardService{
 	 * @param BoardVO
 	 * @return BoardVO
 	 */
+	 //public HashMap<String, Object> boardDetail(int bseq) {
 	 public BoardVO boardDetail(int bseq) {
 		 return dao.boardDetail(bseq);
+//		                           dao.boardCountUpdate()
+//		 BoardVO vo              = dao.boardDetail(bseq);
+//		 ArrayList<ReplyVO> rlist = dao.boardListAndReplyList();
+//
+//		 HashMap<String,Object > map = new HashMap<String,Object>();
+//		 map.put("LVL_VO", vo);
+//		 map.put("LVL_RLIST", rlist);
+//
+//
+//		 return map;
+
 	 }
 }

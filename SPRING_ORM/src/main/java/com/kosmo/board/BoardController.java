@@ -13,9 +13,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
@@ -41,10 +50,13 @@ import org.jfree.util.Rotation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -55,11 +67,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
 
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.kosmo.board.BoardVO;
 import com.kosmo.common.ExcelTemplateWrite;
 import com.kosmo.common.PagingUtil;
@@ -88,6 +103,179 @@ public class BoardController { //extends MultiActionController {
 	String upload_file_format;
 
 
+
+	@RequestMapping(value = "/get_goole_api.do", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<String> getGoogleJsonData(
+			//@RequestParam(value="bseq") int bseq
+			) throws Exception {
+		//System.out.println("요청받기 :::: bseq:" + bseq);
+		String myResult = "";
+		int res = 0;
+
+			String addr = "https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJod7tSseifDUR9hXHLFNGMIs&key=AIzaSyAX9qYtgvZNmWDKq3vYec6VQHVQld-yTlE";
+			String crollingStr  = getWebCrolling(addr);
+			String picAddr = "";
+
+			//---------------------------------------------------------------
+			// 자바단에서 파싱..
+			//---------------------------------------------------------------
+			Gson gson = new Gson();
+			HotSpotsVO hsvo = gson.fromJson(crollingStr, HotSpotsVO.class);
+
+//			console.log(jsonObj.result.international_phone_number);
+//			console.log(jsonObj.result.opening_hours.weekday_text[0]);
+//			console.log(jsonObj.result.photos[0].photo_reference);
+//			console.log(jsonObj.result.reviews[0].author_name);
+
+
+//			//11111111111111
+//			hsvo.setInternationalPhoneNumber(hsvo.getResult().get("international_phone_number").toString());
+//
+//			//22222222222222
+//			LinkedTreeMap tmap = (LinkedTreeMap)hsvo.getResult().get("opening_hours");
+//			ArrayList<String> weekday_text = (ArrayList)tmap.get("weekday_text");
+//			hsvo.setWeekdayText(weekday_text.get(0));
+
+			//3333333333333
+			ArrayList photos = (ArrayList)hsvo.getResult().get("photos");
+			ArrayList photoReference = new ArrayList();
+			String photo_reference = "";
+			ArrayList pictureList = new ArrayList();
+
+			for(int i=0; i<1; i++) {
+			//for(int i=0; i<photos.size(); i++) {
+				photo_reference = (String)((LinkedTreeMap)photos.get(0)).get("photo_reference");
+				photoReference.add(photo_reference);
+
+
+				//---------------------------------------------------
+				//HttpResponse.Header에서 location 정보 가져오기
+				//3가지 방법 중 하나.... 마지막방법은 됨....
+				//---------------------------------------------------
+				picAddr = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=1600&photoreference=" + photo_reference;
+				String locationStr = getResponseHeader(picAddr);
+				pictureList.add(locationStr);
+				System.out.println(locationStr);
+
+
+
+//				RestTemplate template = new RestTemplate();
+//				HttpEntity<String> response = template.getForEntity(picAddr, String.class);
+//				String resultString = response.getBody();
+//				HttpHeaders headers = response.getHeaders();
+//				System.out.println(picAddr + "," + headers.get("location") + "--------header.get(location)");
+//
+//				ResponseEntity<String> entity = template.getForEntity(picAddr, String.class);
+//				String body = entity.getBody();
+//				URI u = entity.getHeaders().getLocation();
+//				System.out.println(u.toString() + "============URI.toString");
+//				//pictureList.add(u.toString());
+
+			}
+			hsvo.setPhotoReference(photoReference);
+
+//			//44444444444444
+//			ArrayList<LinkedTreeMap> reviews = ((ArrayList)hsvo.getResult().get("reviews"));
+//			ArrayList reviewsList = new ArrayList();
+//			for(int i=0; i<reviews.size(); i++) {
+//				HashMap map = new HashMap();
+//				map.put("authorName",  ((LinkedTreeMap)reviews.get(i)).get("author_name").toString());
+//				map.put("rating"	,  ((LinkedTreeMap)reviews.get(i)).get("rating").toString());
+//				map.put("text"		,  ((LinkedTreeMap)reviews.get(i)).get("text").toString());
+//				map.put("time"		,  ((LinkedTreeMap)reviews.get(i)).get("time").toString());
+//				reviewsList.add(map);
+//
+//			}
+//			hsvo.setReviewsList(reviewsList);
+
+			System.out.println(hsvo.getInternationalPhoneNumber());
+			System.out.println(hsvo.getWeekdayText());
+			System.out.println(hsvo.getPhotoReference());
+			System.out.println(hsvo.getReviewsList());
+
+			//service.insertGoogleAPI(hsvo);
+
+			String message = "success";
+//			if(res <=0) message = "faild";
+
+
+		return new ResponseEntity<String>(crollingStr, HttpStatus.OK);
+	}
+
+
+	//---------------------------------------------
+	//URL 요청 결과 페이지를  문자열로 반환
+	//단순 바디만 크롤링 하는 형태
+	//---------------------------------------------
+	private String getWebCrolling(String URL) {
+		String myResult = "";
+		int res = 0;
+
+		URL url = null;
+		BufferedReader br = null;
+		StringBuilder sb = new StringBuilder();
+		String addr = "https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJod7tSseifDUR9hXHLFNGMIs&key=AIzaSyAX9qYtgvZNmWDKq3vYec6VQHVQld-yTlE";
+		String readLine = "";
+
+		try {
+			url = new URL(addr);
+			br = new BufferedReader(new InputStreamReader(url.openStream()));
+			while ((readLine = br.readLine()) != null) {
+				sb.append(readLine + "\n");
+			}
+			br.close();
+
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+
+
+
+
+	private String getResponseHeader(String addr) {
+		String location = "";
+		//--------------------------
+		//   URL 설정하고 접속하기
+		//--------------------------
+		try {
+			//--------------------------
+			//   URL 설정하고 접속하기
+			//--------------------------
+			addr = "https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJod7tSseifDUR9hXHLFNGMIs&key=AIzaSyAX9qYtgvZNmWDKq3vYec6VQHVQld-yTlE";
+			URL url = new URL(addr); //Google. api url
+			HttpURLConnection http = (HttpURLConnection) url.openConnection();
+			http.setDefaultUseCaches(false);
+			http.setDoInput(true);
+			http.setDoOutput(true);
+			http.setRequestProperty("Accept-Encoding", "identity");
+			http.setRequestMethod("GET");
+
+		    //구글에서 온 답변 받기
+			Map<String, List<String>> headers = http.getHeaderFields();
+			Iterator<String> it = headers.keySet().iterator();
+			List<String> values =  headers.get("Content-Type"); //location");
+			System.out.println(values.get(0));
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return location;
+	}
+
+
+
+
+
+
+
+///get_goole_api_pic.do
+
+
 	/** post 출력 **/
 	@RequestMapping(value = "/googleAPI.do", method = RequestMethod.POST)
 	//public ResponseEntity<String> postSendResult(\
@@ -110,6 +298,9 @@ public class BoardController { //extends MultiActionController {
 
 
 
+	//---------------------------------------------
+	//URL 요청 결과 페이지 + 응답 헤더를  문자열로 반환
+	//---------------------------------------------
 	/** post 출력 **/
 	@RequestMapping(value = "/post.do", method = RequestMethod.GET)
 	@ResponseBody
@@ -123,6 +314,8 @@ public class BoardController { //extends MultiActionController {
 		try {
 			//--------------------------
 			//   URL 설정하고 접속하기
+			//String addr = "https://maps.googleapis.com/maps/api/place/details/json
+			//?placeid=ChIJod7tSseifDUR9hXHLFNGMIs&key=AIzaSyAX9qYtgvZNmWDKq3vYec6VQHVQld-yTlE";
 			//--------------------------
 			URL url = new URL("http://192.168.0.13/googleAPI.do"); //Google. api url
 			HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -130,16 +323,14 @@ public class BoardController { //extends MultiActionController {
 			http.setDoInput(true);
 			http.setDoOutput(true);
 			http.setRequestMethod("POST");
-			http.setRequestProperty("content-type", "application/x-www-form-urlencoded");
-
 			http.setRequestProperty("Accept-Encoding", "identity");
+//			http.setRequestMethod("GET");
+			http.setRequestProperty("content-type", "application/x-www-form-urlencoded");
 			http.setRequestProperty("Content-Length", http.getContentLength()+"");
-			//int contentLength = connection.getContentLength();
-
 			//response.addHeader("Content-Length",  response.setContentLength());
 
 
-			//key=value&key=value
+			//HTTP 바디에 key=value&key=value 값을 쓰기
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("id").append("=").append(mid).append("&");	//파라미터
 			buffer.append("pword").append("=").append(mpw);				//파라미터
@@ -152,6 +343,9 @@ public class BoardController { //extends MultiActionController {
 
 
             //구글에서 온 답변 받기
+            String location = http.getHeaderField("location");
+            System.out.println(location);
+
             int responseCode = http.getResponseCode();
     		System.out.println("응답받기 ::::  " + responseCode);
     		if (responseCode == HttpURLConnection.HTTP_OK) { //success
@@ -162,11 +356,11 @@ public class BoardController { //extends MultiActionController {
 				ArrayList resList = new ArrayList();
 				while ((inputLine = br.readLine()) != null) {
 					builder.append(inputLine + "\n");
-					resList.add(inputLine);
 				}
 				br.close();
 				myResult = builder.toString();
-				System.out.println(resList.size() + "건 결과 받기");
+
+
     		}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -437,6 +631,7 @@ public class BoardController { //extends MultiActionController {
 	@RequestMapping(value = "/br.do", method = RequestMethod.GET)
 	public ModelAndView br() throws Exception {
 		ArrayList<BoardVO> list = service.brList();
+		System.out.println(list.size());
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("LVL_LIST", list);
 		mav.setViewName("board/br_list");
@@ -477,8 +672,6 @@ public class BoardController { //extends MultiActionController {
 
 		//BoardDAO impl = new BoardDAO();
 		int totalCount = service.boardCount();
-
-
 		//------------페이징
 		PagingUtil pu
 		= new PagingUtil("/list.do?"
@@ -503,6 +696,25 @@ public class BoardController { //extends MultiActionController {
 		return mav;
 	}
 
+	@RequestMapping(value = "/forward1.do")
+	public String forward1(@RequestParam("seq") int aeq,
+			Model model) {
+		model.addAttribute("LSEQ", aeq);
+		return "forward:/forward2.do";
+	}
+
+	@RequestMapping(value = "/forward2.do")
+	public void forward2(@RequestParam("seq") int beq, Model model) {
+		System.out.println(beq + "---");
+	}
+
+
+
+
+
+
+
+
 	@RequestMapping(value = "/detail.do", method = RequestMethod.GET)
 	public ModelAndView detail(HttpServletRequest request, HttpServletResponse response)
 	{
@@ -515,6 +727,19 @@ public class BoardController { //extends MultiActionController {
 		mav.addObject("LVL_VO", vo);
 		mav.setViewName("board/board_detail");
 		return mav;
+
+
+//		int res = service.boardCountUpdate();
+//		HashMap<String, Object> map = service.boardDetail(Integer.parseInt(bseq));
+
+//		ModelAndView mav = new ModelAndView();
+//		mav.addObject("VO", map.get("LVL_VO"));
+//		mav.addObject("RLIST", map.get("LVL_RLIST"));
+//		mav.setViewName("board/board_detail");
+//		return mav;
+//
+//		${LVL_MAP.LVL_VO.bseq}
+//		${VO.bseq}
 	}
 
 

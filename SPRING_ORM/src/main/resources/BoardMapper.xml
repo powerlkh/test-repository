@@ -93,7 +93,7 @@
 	</select>
 
 
-		<select id="boardList"
+	<select id="boardList"
 	parameterType="map"
 	resultMap="boardMap">
 	<!-- resultType="com.kosmo.board.BoardVO"> -->
