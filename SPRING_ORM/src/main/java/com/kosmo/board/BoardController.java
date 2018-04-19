@@ -6,15 +6,21 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,6 +44,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -50,10 +59,12 @@ import org.jfree.util.Rotation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -75,10 +86,18 @@ import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.kosmo.board.BoardVO;
 import com.kosmo.common.ExcelTemplateWrite;
 import com.kosmo.common.PagingUtil;
-
+import com.kosmo.util.Converter;
+import com.kosmo.util.PDFUtil;
 import com.oreilly.servlet.MultipartRequest;
 import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 
@@ -104,6 +123,100 @@ public class BoardController { //extends MultiActionController {
 
 
 
+	@RequestMapping(value="/converter.do")
+	//public  ResponseEntity<InputStreamResource> converter(
+	//public ResponseEntity<byte[]> converter(
+	//public ResponseEntity<OutputStream> converter(
+	public ResponseEntity<String> converter(
+			HttpServletRequest request, HttpServletResponse response
+			)
+					throws ServletException, IOException {
+		response.setContentType("text/html; charset=UTF-8");
+
+		String baseDir = "D:\\git_repository\\SPRING_ORM\\src\\main\\webapp\\uploads\\";
+		String origFile = request.getParameter("origFile");
+		String origFilePath = baseDir+origFile;
+		String converterFile = origFile+".pdf";
+		String convertFilePath = baseDir+converterFile;
+		String ext = "";
+		if (origFile != null) {
+			ext = StringUtils.lowerCase(FilenameUtils.getExtension(origFile));
+
+
+			PDFUtil util = new PDFUtil();
+			util.ConvertDocToPDF(origFilePath, convertFilePath);
+
+			System.out.println("done");
+
+
+//			response.setContentType("image/png");
+//			response.addHeader("Content-disposition", "attachment;filename="+converterFile);
+//			InputStream is = new URL(origFilePath).openStream();	//new FileInputStream(new File(origFilePath));
+//			OutputStream os = response.getOutputStream(); 			//new FileOutputStream(new File(convertFilePath));
+//			switch (ext) {
+//			case "ppt":
+//				Converter.ppt2png(is, os);
+//				break;
+//			case "pptx":
+//				Converter.pptx2png(is, os);
+//				break;
+//			case "docx":
+//				Converter.docx2png(is, os); ; //response.getOutputStream());
+//				break;
+//			case "pdf":
+//				Converter.pdf2pngUsingPdfBox(is, os);
+//				break;
+//			default:
+//				response.setContentType("text/plain");
+//				response.getWriter().println("Unknown format: " + ext);
+//				//result = "Unknown format: " + ext;
+//			}
+		} else {
+			response.setContentType("text/plain");
+			response.getWriter().println("origFilePath parameter invalied");
+		}
+
+		return new ResponseEntity<String>(converterFile, HttpStatus.OK);
+	}
+
+
+
+	/*@ResponseBody
+    @RequestMapping(value = "/downloadFile.do")
+    public ResponseEntity<byte[]> displayFile(String fileName) throws Exception {
+
+        InputStream in = null;
+        ResponseEntity<byte[]> entity = null;
+
+        try {
+            String formatName = fileName.substring(fileName.lastIndexOf("." ) + 1);
+            MediaType mType = MediaUtils.getMediaType(formatName);
+
+            HttpHeaders headers = new HttpHeaders();
+
+            in = new FileInputStream("c:\\" + fileName);
+            if (mType != null) {
+                headers.setContentType(mType);
+            } else {
+                fileName = fileName.substring(fileName.indexOf("_") + 1);
+                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                headers.add("Content-Disposition", "attatchment; filename=\"" +
+                        new String(fileName.getBytes("UTF-8"), "ISO-8859-1") +
+                        "\"");
+            }
+            entity = new ResponseEntity<byte[]>(IOUtils.toByteArray(in), headers, HttpStatus.CREATED);
+        } catch(Exception e) {
+            e.printStackTrace();
+            entity = new ResponseEntity<byte[]>(HttpStatus.BAD_REQUEST);
+        } finally {
+            in.close();
+        }
+
+        return entity;
+    }*/
+
+
+
 	@RequestMapping(value = "/get_goole_api.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<String> getGoogleJsonData(
@@ -113,91 +226,92 @@ public class BoardController { //extends MultiActionController {
 		String myResult = "";
 		int res = 0;
 
-			String addr = "https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJod7tSseifDUR9hXHLFNGMIs&key=AIzaSyAX9qYtgvZNmWDKq3vYec6VQHVQld-yTlE";
-			String crollingStr  = getWebCrolling(addr);
-			String picAddr = "";
+		String addr = "https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJod7tSseifDUR9hXHLFNGMIs&key=AIzaSyAX9qYtgvZNmWDKq3vYec6VQHVQld-yTlE";
+		String crollingStr  = getWebCrolling(addr);
+		String picAddr = "";
 
-			//---------------------------------------------------------------
-			// 자바단에서 파싱..
-			//---------------------------------------------------------------
-			Gson gson = new Gson();
-			HotSpotsVO hsvo = gson.fromJson(crollingStr, HotSpotsVO.class);
+		//---------------------------------------------------------------
+		// 자바단에서 파싱..
+		//---------------------------------------------------------------
+		Gson gson = new Gson();
+		HotSpotsVO hsvo = gson.fromJson(crollingStr, HotSpotsVO.class);
 
-//			console.log(jsonObj.result.international_phone_number);
-//			console.log(jsonObj.result.opening_hours.weekday_text[0]);
-//			console.log(jsonObj.result.photos[0].photo_reference);
-//			console.log(jsonObj.result.reviews[0].author_name);
+		//			console.log(jsonObj.result.international_phone_number);
+		//			console.log(jsonObj.result.opening_hours.weekday_text[0]);
+		//			console.log(jsonObj.result.photos[0].photo_reference);
+		//			console.log(jsonObj.result.reviews[0].author_name);
 
 
-//			//11111111111111
-//			hsvo.setInternationalPhoneNumber(hsvo.getResult().get("international_phone_number").toString());
-//
-//			//22222222222222
-//			LinkedTreeMap tmap = (LinkedTreeMap)hsvo.getResult().get("opening_hours");
-//			ArrayList<String> weekday_text = (ArrayList)tmap.get("weekday_text");
-//			hsvo.setWeekdayText(weekday_text.get(0));
+		//			//11111111111111
+		//			hsvo.setInternationalPhoneNumber(hsvo.getResult().get("international_phone_number").toString());
+		//
+		//			//22222222222222
+		//			LinkedTreeMap tmap = (LinkedTreeMap)hsvo.getResult().get("opening_hours");
+		//			ArrayList<String> weekday_text = (ArrayList)tmap.get("weekday_text");
+		//			hsvo.setWeekdayText(weekday_text.get(0));
 
-			//3333333333333
-			ArrayList photos = (ArrayList)hsvo.getResult().get("photos");
-			ArrayList photoReference = new ArrayList();
-			String photo_reference = "";
-			ArrayList pictureList = new ArrayList();
+		//3333333333333
+		ArrayList photos = (ArrayList)hsvo.getResult().get("photos");
+		ArrayList photoReference = new ArrayList();
+		String photo_reference = "";
+		ArrayList pictureList = new ArrayList();
 
-			for(int i=0; i<1; i++) {
+		for(int i=0; i<1; i++) {
 			//for(int i=0; i<photos.size(); i++) {
-				photo_reference = (String)((LinkedTreeMap)photos.get(0)).get("photo_reference");
-				photoReference.add(photo_reference);
+			photo_reference = (String)((LinkedTreeMap)photos.get(0)).get("photo_reference");
+			photoReference.add(photo_reference);
 
 
-				//---------------------------------------------------
-				//HttpResponse.Header에서 location 정보 가져오기
-				//3가지 방법 중 하나.... 마지막방법은 됨....
-				//---------------------------------------------------
-				picAddr = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=1600&photoreference=" + photo_reference;
-				String locationStr = getResponseHeader(picAddr);
-				pictureList.add(locationStr);
-				System.out.println(locationStr);
+			//---------------------------------------------------
+			//HttpResponse.Header에서 location 정보 가져오기
+			//3가지 방법 중 하나.... 마지막방법은 됨....
+			//---------------------------------------------------
+			picAddr = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=1600&photoreference=" + photo_reference;
+			String locationStr = getResponseHeader(picAddr);
+			pictureList.add(locationStr);
+			System.out.println(locationStr);
 
 
 
-//				RestTemplate template = new RestTemplate();
-//				HttpEntity<String> response = template.getForEntity(picAddr, String.class);
-//				String resultString = response.getBody();
-//				HttpHeaders headers = response.getHeaders();
-//				System.out.println(picAddr + "," + headers.get("location") + "--------header.get(location)");
-//
-//				ResponseEntity<String> entity = template.getForEntity(picAddr, String.class);
-//				String body = entity.getBody();
-//				URI u = entity.getHeaders().getLocation();
-//				System.out.println(u.toString() + "============URI.toString");
-//				//pictureList.add(u.toString());
+			//				RestTemplate template = new RestTemplate();
+			//				HttpEntity<String> response = template.getForEntity(picAddr, String.class);
+			//				String resultString = response.getBody();
+			//				HttpHeaders headers = response.getHeaders();
+			//				System.out.println(picAddr + "," + headers.get("location") + "--------header.get(location)");
+			//
+			//				ResponseEntity<String> entity = template.getForEntity(picAddr, String.class);
+			//				String body = entity.getBody();
+			//				URI u = entity.getHeaders().getLocation();
+			//				System.out.println(u.toString() + "============URI.toString");
+			//				//pictureList.add(u.toString());
 
-			}
-			hsvo.setPhotoReference(photoReference);
+		}
+		hsvo.setPhotoReference(photoReference);
 
-//			//44444444444444
-//			ArrayList<LinkedTreeMap> reviews = ((ArrayList)hsvo.getResult().get("reviews"));
-//			ArrayList reviewsList = new ArrayList();
-//			for(int i=0; i<reviews.size(); i++) {
-//				HashMap map = new HashMap();
-//				map.put("authorName",  ((LinkedTreeMap)reviews.get(i)).get("author_name").toString());
-//				map.put("rating"	,  ((LinkedTreeMap)reviews.get(i)).get("rating").toString());
-//				map.put("text"		,  ((LinkedTreeMap)reviews.get(i)).get("text").toString());
-//				map.put("time"		,  ((LinkedTreeMap)reviews.get(i)).get("time").toString());
-//				reviewsList.add(map);
-//
-//			}
-//			hsvo.setReviewsList(reviewsList);
+		//			//44444444444444
+		//			ArrayList<LinkedTreeMap> reviews = ((ArrayList)hsvo.getResult().get("reviews"));
+		//			ArrayList reviewsList = new ArrayList();
+		//			for(int i=0; i<reviews.size(); i++) {
+		//				HashMap map = new HashMap();
+		//				map.put("authorName",  ((LinkedTreeMap)reviews.get(i)).get("author_name").toString());
+		//				map.put("rating"	,  ((LinkedTreeMap)reviews.get(i)).get("rating").toString());
+		//				map.put("text"		,  ((LinkedTreeMap)reviews.get(i)).get("text").toString());
+		//				map.put("time"		,  ((LinkedTreeMap)reviews.get(i)).get("time").toString());
+		//				reviewsList.add(map);
+		//
+		//			}
+		//			hsvo.setReviewsList(reviewsList);
 
-			System.out.println(hsvo.getInternationalPhoneNumber());
-			System.out.println(hsvo.getWeekdayText());
-			System.out.println(hsvo.getPhotoReference());
-			System.out.println(hsvo.getReviewsList());
+		System.out.println(hsvo.getInternationalPhoneNumber());
+		System.out.println(hsvo.getWeekdayText());
+		System.out.println(hsvo.getPhotoReference());
+		System.out.println(hsvo.getReviewsList());
 
-			//service.insertGoogleAPI(hsvo);
+		//service.insertGoogleAPI(hsvo);
+		//System.out.println(myResult);
 
-			String message = "success";
-//			if(res <=0) message = "faild";
+		String message = "success";
+		//			if(res <=0) message = "faild";
 
 
 		return new ResponseEntity<String>(crollingStr, HttpStatus.OK);
@@ -254,7 +368,7 @@ public class BoardController { //extends MultiActionController {
 			http.setRequestProperty("Accept-Encoding", "identity");
 			http.setRequestMethod("GET");
 
-		    //구글에서 온 답변 받기
+			//구글에서 온 답변 받기
 			Map<String, List<String>> headers = http.getHeaderFields();
 			Iterator<String> it = headers.keySet().iterator();
 			List<String> values =  headers.get("Content-Type"); //location");
@@ -273,7 +387,7 @@ public class BoardController { //extends MultiActionController {
 
 
 
-///get_goole_api_pic.do
+	///get_goole_api_pic.do
 
 
 	/** post 출력 **/
@@ -324,7 +438,7 @@ public class BoardController { //extends MultiActionController {
 			http.setDoOutput(true);
 			http.setRequestMethod("POST");
 			http.setRequestProperty("Accept-Encoding", "identity");
-//			http.setRequestMethod("GET");
+			//			http.setRequestMethod("GET");
 			http.setRequestProperty("content-type", "application/x-www-form-urlencoded");
 			http.setRequestProperty("Content-Length", http.getContentLength()+"");
 			//response.addHeader("Content-Length",  response.setContentLength());
@@ -336,19 +450,19 @@ public class BoardController { //extends MultiActionController {
 			buffer.append("pword").append("=").append(mpw);				//파라미터
 
 			//OutputStreamWriter osw = new OutputStreamWriter(http.getOutputStream(), "UTF-8");
-            OutputStreamWriter osw = new OutputStreamWriter(http.getOutputStream(), "UTF-8");
-            PrintWriter pw = new PrintWriter(osw);
-            pw.write(buffer.toString());
-            pw.flush();
+			OutputStreamWriter osw = new OutputStreamWriter(http.getOutputStream(), "UTF-8");
+			PrintWriter pw = new PrintWriter(osw);
+			pw.write(buffer.toString());
+			pw.flush();
 
 
-            //구글에서 온 답변 받기
-            String location = http.getHeaderField("location");
-            System.out.println(location);
+			//구글에서 온 답변 받기
+			String location = http.getHeaderField("location");
+			System.out.println(location);
 
-            int responseCode = http.getResponseCode();
-    		System.out.println("응답받기 ::::  " + responseCode);
-    		if (responseCode == HttpURLConnection.HTTP_OK) { //success
+			int responseCode = http.getResponseCode();
+			System.out.println("응답받기 ::::  " + responseCode);
+			if (responseCode == HttpURLConnection.HTTP_OK) { //success
 				InputStreamReader isr = new InputStreamReader(http.getInputStream(), "UTF-8");
 				BufferedReader br = new BufferedReader(isr);
 				StringBuilder builder = new StringBuilder();
@@ -361,13 +475,12 @@ public class BoardController { //extends MultiActionController {
 				myResult = builder.toString();
 
 
-    		}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return new ResponseEntity<String>(myResult, HttpStatus.OK);
 	}
-
 
 
 
@@ -624,6 +737,9 @@ public class BoardController { //extends MultiActionController {
 		return mav;
 	}
 
+
+
+
 	/**
 	 * 목록 + 댓글 using VIEW
 	 * @return ArrayList<BoardVO>
@@ -727,20 +843,10 @@ public class BoardController { //extends MultiActionController {
 		mav.addObject("LVL_VO", vo);
 		mav.setViewName("board/board_detail");
 		return mav;
-
-
-//		int res = service.boardCountUpdate();
-//		HashMap<String, Object> map = service.boardDetail(Integer.parseInt(bseq));
-
-//		ModelAndView mav = new ModelAndView();
-//		mav.addObject("VO", map.get("LVL_VO"));
-//		mav.addObject("RLIST", map.get("LVL_RLIST"));
-//		mav.setViewName("board/board_detail");
-//		return mav;
-//
-//		${LVL_MAP.LVL_VO.bseq}
-//		${VO.bseq}
 	}
+
+
+
 
 
 	@RequestMapping(value = "/edit.do", method = RequestMethod.GET)
@@ -768,16 +874,16 @@ public class BoardController { //extends MultiActionController {
 	public String insert(BoardVO vo) throws IOException {
 
 		//			HttpSession session = request.getSession();
-		//신규첨부파일
-		MultipartFile ufile = vo.getUfile();
-		if(ufile != null) {
-			String fullPath = upload_file_dir+"\\"+ufile.getOriginalFilename();
-			File newFile = new File(fullPath); //파일생성
-			ufile.transferTo(newFile);
-			vo.setBfile_size(ufile.getSize()); //newFile.length());
-			vo.setBfile_path(upload_file_dir);
-			vo.setBfile_name(ufile.getOriginalFilename());
-		}
+//		//신규첨부파일
+//		MultipartFile ufile = vo.getUfile();
+//		if(ufile != null) {
+//			String fullPath = upload_file_dir+"\\"+ufile.getOriginalFilename();
+//			File newFile = new File(fullPath); //파일생성
+//			ufile.transferTo(newFile);
+//			vo.setBfile_size(ufile.getSize()); //newFile.length());
+//			vo.setBfile_path(upload_file_dir);
+//			vo.setBfile_name(ufile.getOriginalFilename());
+//		}
 
 		int res = service.boardInsert(vo);
 		System.out.println(res + "건 입력");
